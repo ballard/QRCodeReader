@@ -30,7 +30,15 @@ class QRScannerController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
             let captureMetadataOutput = AVCaptureMetadataOutput()
             captureSession?.addOutput(captureMetadataOutput)
             captureMetadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            captureMetadataOutput.metadataObjectTypes = [AVMetadataObjectTypeQRCode]
+            
+            
+            captureMetadataOutput.metadataObjectTypes = [
+                AVMetadataObjectTypeQRCode,
+                AVMetadataObjectTypeEAN8Code,
+                AVMetadataObjectTypeUPCECode
+            ]
+            
+            
             videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
             videoPreviewLayer?.videoGravity = AVLayerVideoGravityResizeAspectFill
             videoPreviewLayer?.frame = view.layer.bounds
@@ -40,7 +48,7 @@ class QRScannerController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
             view.bringSubview(toFront: topbar)
             
             qrCodeFrameView = UIView()
-            if let qrCodeFrameView = qrCodeFrameView{
+            if let qrCodeFrameView = qrCodeFrameView {
                 qrCodeFrameView.layer.borderColor = UIColor.green.cgColor
                 qrCodeFrameView.layer.borderWidth = 2
                 view.addSubview(qrCodeFrameView)
@@ -62,15 +70,32 @@ class QRScannerController: UIViewController, AVCaptureMetadataOutputObjectsDeleg
             return
         }
         
-        let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
+//        let metadataObj = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
         
-        if metadataObj.type == AVMetadataObjectTypeQRCode {
+        let metadataObj = metadataObjects.first as! AVMetadataMachineReadableCodeObject
+        
+        switch metadataObj.type {
+        case AVMetadataObjectTypeQRCode?:
             let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
             qrCodeFrameView?.frame = barCodeObject!.bounds
             if metadataObj.stringValue != nil {
                 messageLabel.text = metadataObj.stringValue
             }
+        case AVMetadataObjectTypeEAN8Code?:
+            print("AVMetadataObjectTypeEAN8Code")
+        case AVMetadataObjectTypeUPCECode?:
+            print("AVMetadataObjectTypeUPCECode")
+        default:
+            break
         }
+        
+//        if metadataObj.type == AVMetadataObjectTypeQRCode {
+//            let barCodeObject = videoPreviewLayer?.transformedMetadataObject(for: metadataObj)
+//            qrCodeFrameView?.frame = barCodeObject!.bounds
+//            if metadataObj.stringValue != nil {
+//                messageLabel.text = metadataObj.stringValue
+//            }
+//        }
     }
 
     override func didReceiveMemoryWarning() {
